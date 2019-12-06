@@ -432,16 +432,26 @@ public:
         return node->value;
     }
 
-    Node <elemType> *findElem(Node <elemType> *subtree, elemType val) {
+    Node <elemType> *findElem(Node <elemType> *subtree, Node <elemType> **valElem, elemType val) {
         assert(subtree);
 
-        if(subtree->value == val) return subtree;
-        if (subtree->leftChild) findElem(subtree->leftChild, val);
-        if (subtree->rightChild) findElem(subtree->rightChild, val);
+        if(subtree->value == val) *valElem =  subtree;
+
+        if (subtree->leftChild) {
+            findElem(subtree->leftChild, valElem, val);
+        }
+
+        if (subtree->rightChild) {
+            findElem(subtree->rightChild, valElem, val);
+        }
     }
 
     void changeVal(Node <elemType> *node, elemType val) {
         node->value = val;
+    }
+
+    void changeType(Node <elemType> *node, int type) {
+        node->nodeType = type;
     }
 
     void dump() {

@@ -48,9 +48,19 @@ int main() {
     saveTex(tex);
 
     int diffOrder = 0;
+    double point = 0;
+    char answer = 0;
+    bool diffPointCheck = false;
 
     printf("Какую производную брать будем, введите число:\n");
-    scanf("%d", &diffOrder);
+    scanf("%d%c", &diffOrder, &answer);
+    printf("Посчитать производную в точке?[y/n]\n");
+    scanf("%c", &answer);
+    if (answer == 'y') {
+        diffPointCheck = true;
+        printf("Введите точку x:\n");
+        scanf("%lg", &point);
+    }
 
     char startText[200] = "";
     sprintf(startText, "Легким движением руки дифференцируем данную функцию %d раз(а):", diffOrder);
@@ -60,12 +70,13 @@ int main() {
 
     Tree <double> answerTree = {};
     diffNTime(diffOrder, &expression, &answerTree, tex);
-//    answerTree.dump();
     answerTree.saveTreeTex(answerTree.getRoot(), tex, "Из вышесказанного очевидным образом получаем ответ:","f^\\prime ");
 
-    double a = valueInPoint(&answerTree, 1);
+    if (diffPointCheck) {
+        double diffPoint = valueInPoint(&answerTree, point);
 
-    printf("\n%g", a);
+        printf("\n\n%g", diffPoint);
+    }
 
     endSaveTex(tex);
     return 0;
@@ -89,10 +100,19 @@ double valueInPoint(Tree <double> *tree, double point) {
     Tree <double> calcTree;
     calcTree.setRoot(tree->copySubtree(tree->getRoot()));
 
-    while (Node <double> *node = calcTree.findElem(tree->getRoot(), 'x')) {
-        node->value = point;
-        node->nodeType = NUMBER;
+    Node <double> *node = nullptr;
+    calcTree.findElem(calcTree.getRoot(), &node, 'x'-'a');
+
+    while (node) {
+        if (node->nodeType == VARIABLE) {
+            calcTree.changeVal(node, point);
+            calcTree.changeType(node, NUMBER);
+        }
+
+        calcTree.findElem(calcTree.getRoot(), &node, 'x'-'a');
+        node = nullptr;
     }
+
     calcTree.simplify();
     return calcTree.getRoot()->value;
 }
