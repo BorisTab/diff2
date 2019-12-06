@@ -84,6 +84,12 @@ int main() {
     Tree <double> answerTree = {};
     diffNTime(diffOrder, &expression, &answerTree, tex);
 
+    if (taylorCheck) {
+        taylorSeries(&expression, taylorPoint, taylorDeg, tex);
+    }
+
+    answerTree.saveTreeTex(answerTree.getRoot(), tex, "Из вышесказанного очевидным образом получаем ответ:","f^\\prime ");
+
     if (diffPointCheck) {
         double valPoint = valueInPoint(&answerTree, point);
 
@@ -91,12 +97,6 @@ int main() {
         fprintf(tex, "f^\\prime (%lg) = %lg", point, valPoint);
         fprintf(tex, "\\end{gather}\n");
     }
-
-    if (taylorCheck) {
-        taylorSeries(&expression, taylorPoint, taylorDeg, tex);
-    }
-
-    answerTree.saveTreeTex(answerTree.getRoot(), tex, "Из вышесказанного очевидным образом получаем ответ:","f^\\prime ");
 
     endSaveTex(tex);
     return 0;
@@ -117,11 +117,13 @@ void taylorSeries(Tree <double> *expression, double point, int degree, FILE *tex
     sprintf(strToTex, "%lg + ", pointVal);
     strToTex += strlen(strToTex);
 
+//    Tree <double> defExp = {};
+//    defExp.setRoot(expression->copySubtree(expression->getRoot()));
+
     for (int i = 1; i <= degree; i++) {
         Tree <double> ansTree = {};
 
         diffNTime(i, expression, &ansTree, tex);
-        ansTree.dump();
         pointVal = valueInPoint(&ansTree, point);
         printf("%g ", pointVal);
         sprintf(strToTex, R"(\frac{%lg}{%d!} \cdot \left(x-%lg \right)^%d + )", pointVal, i, point, i);
@@ -136,6 +138,9 @@ void taylorSeries(Tree <double> *expression, double point, int degree, FILE *tex
 }
 
 void diffNTime(int n, Tree <double> *expression, Tree <double> *answerTree, FILE *tex) {
+    Tree <double> defExp = {};
+    defExp.setRoot(expression->copySubtree(expression->getRoot()));
+
     for (int i = 1; i <= n; i++) {
         diffTree(expression, answerTree, tex);
 
@@ -147,6 +152,7 @@ void diffNTime(int n, Tree <double> *expression, Tree <double> *answerTree, FILE
             delete exRoot;
         }
     }
+    expression->setRoot(defExp.copySubtree(defExp.getRoot()));
 }
 
 double valueInPoint(Tree <double> *tree, double point) {
@@ -210,7 +216,8 @@ Node <double> *diffNode(Node <double> *node, Tree <double> *answerTree, FILE *te
 #define DEF_CMD(name, num, sign, code, texCode) \
         if (node->value == num) code \
         else
-#include "dsl.h"
+#include "operations.h"
+
 #undef DEF_CMD
         {}
 

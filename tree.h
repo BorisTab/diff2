@@ -29,7 +29,8 @@ enum nodeTypes {
 
 enum operations {
     NOTHING = 0,
-#include "dsl.h"
+#include "operations.h"
+
 #undef DEF_CMD
 };
 
@@ -38,7 +39,8 @@ enum operations {
 
 const char *getEnumName(int op) {
     switch (op) {
-#include "dsl.h"
+#include "operations.h"
+
 #undef DEF_CMD
         default: return nullptr;
     }
@@ -302,7 +304,8 @@ private:
 #define DEF_CMD(name, num, sign, code, texCode) \
     if (!strcmp(func, sign)) val = num; \
     else
-#include "dsl.h"
+#include "operations.h"
+
 #undef DEF_CMD
         {
             printf("Syntax error: unknown function %s", func);
@@ -335,7 +338,7 @@ private:
             case num: texCode break;
 
             switch ((int) node->value) {
-#include "dsl.h"
+#include "operations.h"
 
                 default: printf("Error: unknown function");
             }

@@ -3,4 +3,4 @@ project(diff2)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(diff2 main.cpp dsl.h tree.h fileRead.h)
+add_executable(diff2 main.cpp operations.h tree.h fileRead.h)
