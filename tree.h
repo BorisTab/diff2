@@ -506,7 +506,7 @@ public:
     void saveTreeTex(Node <elemType> *node, FILE *tex, const char *str, const char *funcName) {
         fprintf(tex, "%s\n", str);
 
-        fprintf(tex, "\\begin{gather}\\label{eq:1}");
+        fprintf(tex, "\\begin{gather}\\label{eq:%x}", node);
 
         fprintf(tex, "%s = ", funcName);
         nodeToTex(node, tex);

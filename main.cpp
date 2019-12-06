@@ -33,6 +33,8 @@ void endSaveTex(FILE *tex);
 
 double valueInPoint(Tree <double> *tree, double point);
 
+void taylorSeries(Tree <double> *expression, double point, int degree, FILE *tex);
+
 const int memesN = 5;
 
 const char *memes[memesN] = {
@@ -51,6 +53,9 @@ int main() {
     double point = 0;
     char answer = 0;
     bool diffPointCheck = false;
+    bool taylorCheck = false;
+    double taylorPoint = 0;
+    int taylorDeg = 0;
 
     printf("Какую производную брать будем, введите число:\n");
     scanf("%d%c", &diffOrder, &answer);
@@ -59,7 +64,15 @@ int main() {
     if (answer == 'y') {
         diffPointCheck = true;
         printf("Введите точку x:\n");
-        scanf("%lg", &point);
+        scanf("%lg%c", &point, &answer);
+    }
+    scanf("%c", &answer);
+    printf("Разложить формулу в тейлора?[y/n]\n");
+    scanf("%c", &answer);
+    if (answer == 'y') {
+        taylorCheck = true;
+        printf("Введите точку разложения и точность разложения:\n");
+        scanf("%lg%d", &taylorPoint, &taylorDeg);
     }
 
     char startText[200] = "";
@@ -70,16 +83,56 @@ int main() {
 
     Tree <double> answerTree = {};
     diffNTime(diffOrder, &expression, &answerTree, tex);
-    answerTree.saveTreeTex(answerTree.getRoot(), tex, "Из вышесказанного очевидным образом получаем ответ:","f^\\prime ");
 
     if (diffPointCheck) {
-        double diffPoint = valueInPoint(&answerTree, point);
+        double valPoint = valueInPoint(&answerTree, point);
 
-        printf("\n\n%g", diffPoint);
+        fprintf(tex, "\\begin{gather}\\label{eq:2}");
+        fprintf(tex, "f^\\prime (%lg) = %lg", point, valPoint);
+        fprintf(tex, "\\end{gather}\n");
     }
+
+    if (taylorCheck) {
+        taylorSeries(&expression, taylorPoint, taylorDeg, tex);
+    }
+
+    answerTree.saveTreeTex(answerTree.getRoot(), tex, "Из вышесказанного очевидным образом получаем ответ:","f^\\prime ");
 
     endSaveTex(tex);
     return 0;
+}
+
+void taylorSeries(Tree <double> *expression, double point, int degree, FILE *tex) {
+    char *strToTex = new char[1000];
+    char *strStart = strToTex;
+
+    sprintf(strToTex, "Разложение функции в тейлора с точность o($x^%d$) в точке %lg:\n", degree, point);
+    strToTex += strlen(strToTex);
+    sprintf(strToTex, "\\begin{gather}\\label{eq:3}");
+    strToTex += strlen(strToTex);
+    sprintf(strToTex, "f(x) = ");
+    strToTex += strlen(strToTex);
+
+    double pointVal = valueInPoint(expression, point);
+    sprintf(strToTex, "%lg + ", pointVal);
+    strToTex += strlen(strToTex);
+
+    for (int i = 1; i <= degree; i++) {
+        Tree <double> ansTree = {};
+
+        diffNTime(i, expression, &ansTree, tex);
+        ansTree.dump();
+        pointVal = valueInPoint(&ansTree, point);
+        printf("%g ", pointVal);
+        sprintf(strToTex, R"(\frac{%lg}{%d!} \cdot \left(x-%lg \right)^%d + )", pointVal, i, point, i);
+        strToTex += strlen(strToTex);
+    }
+
+    sprintf(strToTex, "o((x-%lg)^%d)", point, degree);
+    strToTex += strlen(strToTex);
+    sprintf(strToTex, "\\end{gather}\n");
+    fprintf(tex, "%s", strStart);
+    delete strStart;
 }
 
 void diffNTime(int n, Tree <double> *expression, Tree <double> *answerTree, FILE *tex) {
@@ -109,8 +162,8 @@ double valueInPoint(Tree <double> *tree, double point) {
             calcTree.changeType(node, NUMBER);
         }
 
-        calcTree.findElem(calcTree.getRoot(), &node, 'x'-'a');
         node = nullptr;
+        calcTree.findElem(calcTree.getRoot(), &node, 'x'-'a');
     }
 
     calcTree.simplify();
